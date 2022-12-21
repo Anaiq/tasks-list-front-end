@@ -4,10 +4,8 @@ import Task from './Task';
 import './TaskList.css';
 
 const TaskList = (props) => {
-  // const TaskList = (tasks) => {
   const getTaskListJSX = (props) => {
     return props.tasks.map((task) => {
-      // return tasks.tasks.map((task) => {
       return (
         <Task
           key={task.id}

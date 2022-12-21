@@ -1,12 +1,10 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-// import { useEffect } from 'react';
-// import axios from 'axios';
 import TaskList from './components/TaskList.js';
 import './App.css';
 
-// // maybe delete this? (receiving tasks from API) lines 9 - 20
+// this hardcoded data is not needed since receiving tasks from API (lines 9 - 20) 
 // const TASKSLIST = [
 //   {
 //     id: 1,
@@ -22,30 +20,7 @@ import './App.css';
 //     id: 3,
 //     title: 'Walk the dog',
 //     isComplete: false,
-//   },
-//   {
-//     id: 4,
-//     title: 'Pick up kiddos',
-//     isComplete: false,
-//   },
-//   {
-//     id: 5,
-//     title: 'Get the mail',
-//     isComplete: false,
-//   },
-// ];
-// maybe delete this? (receiving tasks from API) lines 9 - 20
-// const TASKSLIST = [
-//   {
-//     id: 1,
-//     title: 'Mow the lawn',
-//     isComplete: false,
-//   },
-//   {
-//     id: 2,
-//     title: 'Cook Pasta',
-//     isComplete: true,
-//   },
+//   }
 // ];
 
 // alternate version of Base URL

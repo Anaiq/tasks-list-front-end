@@ -14,7 +14,6 @@ const Task = (props) => {
         {props.title}
         {/* {title} */}
       </button>
-      {/* delete or filter button*/}
       <button
         className="tasks__item__remove button"
         onClick={() => props.onDeleteTask(props.id)}
