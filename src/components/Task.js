@@ -15,10 +15,12 @@ const Task = (props) => {
         {/* {title} */}
       </button>
       {/* delete or filter button*/}
-      <button 
+      <button
         className="tasks__item__remove button"
         onClick={() => props.onDeleteTask(props.id)}
-      >x</button>
+      >
+        x
+      </button>
     </li>
   );
 };
@@ -29,7 +31,7 @@ Task.propTypes = {
   isComplete: PropTypes.bool.isRequired,
   onCompleteTask: PropTypes.func.isRequired,
   buttonClass: PropTypes.bool,
-  onDeleteTask: PropTypes.func.isRequired
+  onDeleteTask: PropTypes.func.isRequired,
 };
 
 export default Task;
