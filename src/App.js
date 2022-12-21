@@ -1,10 +1,9 @@
-import React from 'react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import TaskList from './components/TaskList.js';
 import './App.css';
 
-// this hardcoded data is not needed since receiving tasks from API (lines 9 - 20) 
+// this hardcoded data is not needed since receiving tasks from API (lines 9 - 20)
 // const TASKSLIST = [
 //   {
 //     id: 1,
@@ -30,11 +29,11 @@ const kBaseUrl = 'https://task-list-api-c17.herokuapp.com';
 // convert from API function goes here:
 const convertFromApi = (apiTask) => {
   const { id, title, description, is_complete: isComplete } = apiTask;
-  const newTask = { id, title, description, isComplete};
+  const newTask = { id, title, description, isComplete };
   return newTask;
 };
 
-// get request
+// get tasks with GET request
 const getAllTasksApi = () => {
   return axios
     .get(`${kBaseUrl}/tasks`)
@@ -44,10 +43,34 @@ const getAllTasksApi = () => {
       return response.data.map(convertFromApi);
     })
     .catch((error) => {
-      console.log(error.data);
+      console.log(error.data, 'Error fetching tasks');
     });
 };
-// delete request
+
+// const postTasksApi = () => {
+//   return axios.post(`${kBaseUrl}/tasks`).then((response) => {
+//     // return response.data;
+//     return convertFromApi(response.data);
+//   });
+// };
+
+// update task with PATCH request
+const markCompleteIncompleteTasksApi = (id, markComplete) => {
+  const endpoint = markComplete ? 'mark_complete' : 'mark_incomplete';
+  return axios
+    .patch(`${kBaseUrl}/tasks/task_${id}/${endpoint}`)
+    .then((response) => {
+      console.log(response.data);
+      // return response.data;
+      return convertFromApi(response.data);
+    })
+    .catch((error) => {
+      console.log(error.data);
+      throw new Error(`Error updating task ${id}`);
+    });
+};
+
+// delete task with DELETE request
 const deleteTasksApi = (id) => {
   return axios
     .delete(`${kBaseUrl}/tasks_${id}`)
@@ -58,42 +81,9 @@ const deleteTasksApi = (id) => {
     })
     .catch((error) => {
       console.log(error.data);
+      throw new Error(`Error deleting task ${id}`);
     });
 };
-// patch request
-const markCompleteTasksApi = (id) => {
-  return axios
-    .patch(`${kBaseUrl}/tasks/task_${id}/mark_complete`)
-    .then((response) => {
-      console.log(response.data);
-      // return response.data;
-      return convertFromApi(response.data);
-    })
-    .catch((error) => {
-      console.log(error.data);
-    });
-};
-
-const markIncompleteTasksApi = (id) => {
-  return axios
-    .patch(`${kBaseUrl}/tasks/task_${id}/mark_incomplete`)
-    .then((response) => {
-      console.log(response.data);
-      // return response.data;
-      return convertFromApi(response.data);
-    })
-    .catch((error) => {
-      console.log(error.data);
-    });
-};
-
-const postTasksApi = () => {
-  return axios.post(`${kBaseUrl}/tasks`).then((response) => {
-    // return response.data;
-    return convertFromApi(response.data);
-  });
-};
-
 
 const App = () => {
   // const [tasks, setTasks] = useState(TASKSLIST);
@@ -101,15 +91,7 @@ const App = () => {
   const [tasks, setTasks] = useState([]);
   console.log('tasklist:', tasks);
 
-  // create a helper function above the useEffect to keep the useEffect small
-  const getAllTasks = () => {
-    return getAllTasksApi().then((tasks) => {
-      setTasks(tasks);
-      console.log(tasks);
-    });
-  };
-
-  // then have to modify the useEffect
+  // modify the useEffect
   useEffect(() => {
     getAllTasks();
   }, []);
@@ -122,51 +104,59 @@ const App = () => {
   //   });
   // }, []);
 
-  const completeTask = (id) => {
-    return markCompleteTasksApi(id).then((taskResult) => {
-      setTasks((tasks) =>
-        tasks.map((task) => {
-          console.log('id:', id, 'task', task);
-          if (task.id === id) {
-            console.log('isComplete', task.isComplete);
-            return { ...task, isComplete: !taskResult.isComplete };
-          } else {
-            return task;
-          }
-        })
-      );
+  // create a helper function above the useEffect to keep the useEffect small
+  const getAllTasks = () => {
+    return getAllTasksApi().then((tasks) => {
+      setTasks(tasks);
+      console.log(tasks);
     });
   };
 
-  const incompleteTask = (id) => {
-    return markIncompleteTasksApi(id).then((taskResult) => {
-      setTasks((tasks) =>
-        tasks.map((task) => {
-          console.log('id:', id, 'task', task);
-          if (task.id === id) {
-            console.log('isComplete', task.isComplete);
-            return { ...task, isComplete: !taskResult.isComplete };
-          } else {
-            return task;
-          }
-        })
-      );
-    });
+  const updateTask = (id) => {
+    // find the task we want to update
+    const task = tasks.find((task) => task.id === id);
+
+    // return empty Promise if we did not find that particular task
+    if (!task) {
+      return Promise.resolve();
+    }
+
+    return markCompleteIncompleteTasksApi(id, !task.isComplete)
+      .then((newTask) => {
+        setTasks((oldTasks) => {
+          return oldTasks.map((task) => {
+            console.log('id:', id, 'task', task);
+            if (task.id === newTask.id) {
+              console.log('isComplete', task.isComplete);
+              return { newTask };
+            } else {
+              return task;
+            }
+          });
+        });
+      })
+      .catch((error) => {
+        console.log(error.data, 'Error fetching tasks');
+      });
   };
 
   // update tasks, leverage the state
   const deleteTask = (id) => {
     console.log('in delete!');
     console.log('deletable task');
-    return deleteTasksApi(id).then(taskResult => {
-      // setTasks((tasks) =>
-      //   tasks.filter((task) => {
-      //     return task.id !== taskResult.id;
-      //   }));
-      return getAllTasks();
-    });
+
+    return deleteTasksApi(id)
+      .then(() => {
+        // return getAllTasks();
+        setTasks((oldTasks) => {
+          return oldTasks.filter((task) => task.id !== id);
+        });
+      })
+      .catch((error) => {
+        console.log(error.data);
+      });
   };
-  // let updatedTasks = tasks.filter((task) => task.id !== id);
+
   // console.log(updatedTasks);
   // setTasks(updatedTasks);
 
@@ -180,7 +170,7 @@ const App = () => {
           {
             <TaskList
               tasks={tasks}
-              onCompleteTask={completeTask}
+              onUpdateTask={updateTask}
               onDeleteTask={deleteTask}
             />
           }
